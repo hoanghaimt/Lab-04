@@ -23,6 +23,7 @@ namespace Lab_04.Controllers
             objCourse.ListCategory = context.Categories.ToList();
             return View(objCourse);
         }
+
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -133,6 +134,35 @@ namespace Lab_04.Controllers
             db.SaveChanges();
             return RedirectToAction("Mine");
 
+        }
+
+        public ActionResult LectureIamGoing()
+        {
+            ApplicationUser currentUser = System.Web.HttpContext.Current.GetOwinContext().GetUserManager<ApplicationUserManager>()
+                .FindById(System.Web.HttpContext.Current.User.Identity.GetUserId());
+            BigSchoolContext context = new BigSchoolContext();
+
+            var listFollwee = context.Followings.Where(p => p.FollowerId == currentUser.Id).ToList();
+
+
+            var listAttendances = context.Attendances.Where(p => p.Attendee == currentUser.Id).ToList();
+
+            var courses = new List<Course>();
+            foreach (var course in listAttendances)
+
+            {
+                foreach (var item in listFollwee)
+                {
+                    if (item.FolloweeId == course.Course.LecturerID)
+                    {
+                        Course objCourse = course.Course;
+                        objCourse.LectureName = System.Web.HttpContext.Current.GetOwinContext().GetUserManager<ApplicationUserManager>()
+                            .FindById(objCourse.LecturerID).Name;
+                        courses.Add(objCourse);
+                    }
+                }
+            }
+            return View(courses);
         }
 
     }
